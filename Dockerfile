@@ -16,12 +16,28 @@ RUN pip install --no-cache-dir -r requirements-base.txt
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Remove potentially conflicting versions
 RUN pip uninstall -y \
+    numpy \
+    torch \
+    torchvision \
     opencv-python \
     opencv-python-headless \
     opencv-contrib-python \
-    opencv-contrib-python-headless || true && \
-    pip install --no-cache-dir opencv-python-headless==4.9.0.80
+    opencv-contrib-python-headless || true
+
+# Install a clean compatible NumPy version
+RUN pip install --no-cache-dir numpy==1.26.3
+
+# Install matching CPU versions of PyTorch and TorchVision
+RUN pip install --no-cache-dir \
+    torch==2.5.1 \
+    torchvision==0.20.1 \
+    --index-url https://download.pytorch.org/whl/cpu
+
+# Install OpenCV after NumPy
+RUN pip install --no-cache-dir \
+    opencv-python-headless==4.9.0.80
 
 ENV PORT=8080
 
