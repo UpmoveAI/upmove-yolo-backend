@@ -8,12 +8,13 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/HumanSignal/label-studio-ml-backend.git .
+RUN git clone https://github.com/HumanSignal/label-studio-ml-backend.git /app/label-studio-ml-backend
 
-WORKDIR /app/label_studio_ml/examples/yolo
+WORKDIR /app/label-studio-ml-backend/label_studio_ml/examples/yolo
 
+RUN pip install --no-cache-dir -r requirements-base.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 ENV PORT=9090
 
-CMD label-studio-ml start . --port ${PORT} --host 0.0.0.0
+CMD ["sh", "-c", "label-studio-ml start . --port ${PORT} --host 0.0.0.0"]
