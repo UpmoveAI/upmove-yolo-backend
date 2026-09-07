@@ -26,7 +26,14 @@ WORKDIR /app/label-studio-ml-backend/label_studio_ml/examples/yolo
 RUN pip install --no-cache-dir -r requirements-base.txt
 
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip uninstall -y \
+    opencv-python \
+    opencv-python-headless \
+    opencv-contrib-python \
+    opencv-contrib-python-headless || true
 
+RUN pip install --no-cache-dir --no-deps \
+    opencv-python-headless==4.9.0.80
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PORT=8080
