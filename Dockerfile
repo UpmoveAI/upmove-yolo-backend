@@ -8,57 +8,33 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
+RUN python -m pip install --upgrade pip setuptools wheel
+
+# Install one clean NumPy + PyTorch stack
+RUN pip install --no-cache-dir numpy==1.26.4
+
+RUN pip install --no-cache-dir \
+    torch==2.2.2 \
+    torchvision==0.17.2 \
+    --index-url https://download.pytorch.org/whl/cpu
+
+# Clone Label Studio ML backend
 RUN git clone https://github.com/HumanSignal/label-studio-ml-backend.git \
     /app/label-studio-ml-backend
 
 WORKDIR /app/label-studio-ml-backend/label_studio_ml/examples/yolo
 
-# Label Studio ML backend
+# Install Label Studio backend
 RUN pip install --no-cache-dir -r requirements-base.txt
 
-# Remove packages that can cause NumPy / Torch conflicts
-RUN pip uninstall -y \
-    numpy \
-    torch \
-    torchvision \
-    opencv-python \
-    opencv-python-headless \
-    opencv-contrib-python \
-    opencv-contrib-python-headless || true
-
-# Stable NumPy
-RUN pip install --no-cache-dir numpy==1.25.2
-
-# Stable CPU PyTorch combination
+# Keep NumPy below 2 while installing YOLO
 RUN pip install --no-cache-dir \
-    torch==2.1.2 \
-    torchvision==0.16.2 \
-    --index-url https://download.pytorch.org/whl/cpu
+    "numpy==1.26.4" \
+    "opencv-python==4.9.0.80" \
+    -r requirements.txt
 
-# OpenCV compatible with NumPy 1.x
-RUN pip install --no-cache-dir \
-    opencv-python-headless==4.9.0.80
-
-# YOLO requirements
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Force our stable versions again after YOLO requirements
-RUN pip install --no-cache-dir --force-reinstall \
-    numpy==1.25.2
-
-RUN pip install --no-cache-dir --force-reinstall \
-    torch==2.1.2 \
-    torchvision==0.16.2 \
-    --index-url https://download.pytorch.org/whl/cpu
-
-RUN pip uninstall -y opencv-python opencv-contrib-python || true
-
-RUN pip install --no-cache-dir --force-reinstall \
-    --no-deps \
-    opencv-python-headless==4.9.0.80
-
-# IMPORTANT: test NumPy -> PyTorch conversion during build
-RUN python -c "import numpy as np, torch; a=np.array([1,2,3],dtype=np.float32); print('NUMPY:',np._version); print('TORCH:',torch.version_); print('TEST:',torch.from_numpy(a))"
+# Simple build test
+RUN python -c "import numpy, torch; print('NumPy', numpy._version); print('Torch', torch.version_); print(torch.from_numpy(numpy.array([1,2,3], dtype=numpy.float32)))"
 
 ENV PORT=8080
 
