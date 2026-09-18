@@ -23,6 +23,11 @@ RUN git clone https://github.com/HumanSignal/label-studio-ml-backend.git \
 
 WORKDIR /app/label-studio-ml-backend/label_studio_ml/examples/yolo
 
+# Apply zero-overlap fix: copy patched files from build context
+COPY yolo/model.py /app/label-studio-ml-backend/label_studio_ml/examples/yolo/model.py
+COPY yolo/control_models/rectangle_labels.py /app/label-studio-ml-backend/label_studio_ml/examples/yolo/control_models/rectangle_labels.py
+COPY yolo/tests/test_zero_overlap.py /app/label-studio-ml-backend/label_studio_ml/examples/yolo/tests/test_zero_overlap.py
+
 RUN pip install --no-cache-dir -r requirements-base.txt
 
 RUN pip install --no-cache-dir -r requirements.txt
@@ -41,3 +46,4 @@ ENV WORKERS=1
 ENV THREADS=4
 
 CMD ["sh", "-c", "label-studio-ml start . --port ${PORT} --host 0.0.0.0"]
+
